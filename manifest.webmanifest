@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "ぽけっとパズルの森",
+  "short_name": "ぽけパズ",
+  "description": "つなげて そだてる ふしぎな島",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#f4d9b4",
+  "background_color": "#f8e8d0",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

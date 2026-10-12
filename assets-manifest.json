@@ -117,14 +117,14 @@
     },
     {
       "path": "assets/obstacles/wooden_crate.png",
-      "width": 278,
-      "height": 273,
+      "width": 724,
+      "height": 783,
       "transparent": true
     },
     {
       "path": "assets/obstacles/rock.png",
-      "width": 280,
-      "height": 275,
+      "width": 671,
+      "height": 646,
       "transparent": true
     }
   ]

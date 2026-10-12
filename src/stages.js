@@ -1,0 +1,60 @@
+export const stages = [
+  {
+    id: 1,
+    area: "forest",
+    name: "はじめての果実",
+    rows: 8,
+    cols: 8,
+    moves: 24,
+    goals: { 0: 15, 1: 15 },
+    obstacles: [],
+    tip: "となりの果実をスワイプ。3つそろえてみよう！",
+  },
+  {
+    id: 2,
+    area: "forest",
+    name: "ふしぎなきらめき",
+    rows: 8,
+    cols: 8,
+    moves: 26,
+    goals: { 2: 22, 3: 22 },
+    obstacles: [],
+    specials: [
+      { r: 3, c: 3, type: "rocketH" },
+      { r: 4, c: 4, type: "tnt" },
+    ],
+    tip: "特殊アイテムはタップでも発動！4つ以上で作れるよ。",
+  },
+  {
+    id: 3,
+    area: "forest",
+    name: "森のおかたづけ",
+    rows: 8,
+    cols: 8,
+    moves: 32,
+    goals: { crate: 4, rock: 4 },
+    obstacles: [
+      ...[
+        [2, 2],
+        [2, 5],
+        [5, 2],
+        [5, 5],
+      ].map(([r, c]) => ({ r, c, type: "crate", hp: 1 })),
+      ...[
+        [3, 3],
+        [3, 4],
+        [4, 3],
+        [4, 4],
+      ].map(([r, c]) => ({ r, c, type: "rock", hp: 2 })),
+    ],
+    tip: "木箱は隣で消すと壊れるよ。岩には特殊アイテムを使おう！",
+  },
+];
+export const characters = [
+  ["mochi", "もち", 0],
+  ["piyo", "ぴよ", 1],
+  ["midorin", "みどりん", 1],
+  ["pinku", "ぴんく", 2],
+  ["kuromaru", "くろまる", 3],
+  ["fuwari", "ふわり", 3],
+];
