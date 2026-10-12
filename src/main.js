@@ -1,9 +1,16 @@
 import "./style.css";
 import { Game } from "./engine.js";
 import { stages, characters } from "./stages.js";
-import { load, save, fresh } from "./save.js";
+import { load, save } from "./save.js";
 import { Renderer } from "./renderer.js";
 import { AudioPlayer } from "./audio.js";
+import { paths } from "./assets.js";
+import {
+  MAP_PADS,
+  TITLE_CHARACTERS,
+  coverGeometry,
+  projectPoint,
+} from "./layout.js";
 const app = document.querySelector("#app");
 const data = load();
 const audio = new AudioPlayer(data.settings);
@@ -14,30 +21,61 @@ let game,
   screen = "title",
   resizeObserver;
 let saveWarning = false;
-const fruits = ["strawberry", "green_apple", "banana", "grape", "peach"];
-const paths = {
-  ...Object.fromEntries(
-    fruits.map((n, i) => [`fruit${i}`, `assets/pieces/${n}.png`]),
-  ),
-  rocketH: "assets/powerups/rocket_horizontal.png",
-  rocketV: "assets/powerups/rocket_vertical.png",
-  tnt: "assets/powerups/tnt.png",
-  propeller: "assets/powerups/propeller.png",
-  rainbow: "assets/powerups/light_ball.png",
-  crate: "assets/obstacles/wooden_crate.png",
-  rock: "assets/obstacles/rock.png",
-  ...Object.fromEntries(
-    characters.map(([n]) => [n, `assets/characters/${n}.png`]),
-  ),
-  title: "assets/backgrounds/title_forest.png",
-  map: "assets/backgrounds/map_forest.png",
-  puzzle: "assets/backgrounds/puzzle_forest.png",
-};
 for (const name of ["title", "map", "puzzle"])
   app.style.setProperty(
     `--${name}-bg`,
     `url("${new URL(paths[name], document.baseURI).href}")`,
   );
+function layoutScreen() {
+  const geometry = coverGeometry(app.clientWidth, app.clientHeight);
+  app.style.setProperty(
+    "--scene-size",
+    `${geometry.width}px ${geometry.height}px`,
+  );
+  app.style.setProperty("--scene-x", `${geometry.x}px`);
+  app.style.setProperty("--scene-y", `${geometry.y}px`);
+  document.documentElement.style.setProperty(
+    "--current-bg",
+    `url("${new URL(paths[screen === "collection" ? "map" : screen], document.baseURI).href}")`,
+  );
+  if (screen === "map") {
+    for (const pad of MAP_PADS) {
+      const node = app.querySelector(`[data-stage="${pad.id}"]`);
+      if (!node) continue;
+      const point = projectPoint(pad, geometry);
+      node.style.left = `${point.x}px`;
+      node.style.top = `${point.y}px`;
+      node.style.width = `${Math.max(44, pad.width * geometry.scale)}px`;
+      node.style.height = `${Math.max(44, pad.height * geometry.scale)}px`;
+    }
+  }
+  if (screen === "title") {
+    const controls = app.querySelector(".title-actions");
+    if (!controls) return;
+    const safeBottom =
+      parseFloat(getComputedStyle(app).getPropertyValue("--safe-bottom")) || 0;
+    const heroBottom = projectPoint(
+      { x: 0, y: TITLE_CHARACTERS.y + TITLE_CHARACTERS.height },
+      geometry,
+    ).y;
+    const preferred = projectPoint({ x: 0, y: 1170 }, geometry).y;
+    const latest = app.clientHeight - safeBottom - controls.offsetHeight - 12;
+    controls.style.top = `${Math.min(latest, Math.max(heroBottom + 10, preferred))}px`;
+  }
+}
+function syncViewport() {
+  // visualViewport follows Safari's moving toolbar; standalone uses the same path.
+  const height = Math.ceil(window.visualViewport?.height ?? window.innerHeight);
+  document.documentElement.style.setProperty(
+    "--viewport-height",
+    `${height}px`,
+  );
+  layoutScreen();
+  if (screen === "puzzle" && renderer && !busy) renderer.resize();
+}
+window.addEventListener("resize", syncViewport);
+window.visualViewport?.addEventListener("resize", syncViewport);
+syncViewport();
 function persist() {
   if (!save(data) && !saveWarning) {
     saveWarning = true;
@@ -60,6 +98,7 @@ function mount(html, name) {
   screen = name;
   app.innerHTML =
     html + '<div class="rotate">📱<br>iPhoneを縦向きにして遊んでね</div>';
+  layoutScreen();
   app.querySelectorAll("[data-action]").forEach((el) =>
     el.addEventListener("click", () => {
       audio.unlock();
@@ -72,18 +111,18 @@ function settings() {
 }
 function title() {
   mount(
-    `<section class="screen title"><div class="logo"><div class="eyebrow">POCKET PUZZLE FOREST</div><h1>ぽけっと<br>パズルの森</h1><p>つなげて そだてる ふしぎな島</p></div><img class="mascot" src="${paths.mochi}" alt="もち"><div class="title-actions">${button("はじめる", "new", "primary")}${button(data.current ? "つづきから" : "森のマップへ", "continue", "mint")}${settings()}<p class="install-tip">Safariの共有 →「ホーム画面に追加」<br>一度読み込めば、オフラインでも遊べるよ</p></div></section>`,
+    `<section class="screen title"><div class="logo"><div class="eyebrow">POCKET PUZZLE FOREST</div><h1>ぽけっと<br>パズルの森</h1><p>つなげて そだてる ふしぎな島</p></div><img class="mascot" src="${paths.mochi}" alt="もち">${settings()}<div class="title-actions">${button("はじめる", "map", "primary title-start")}<p class="install-tip">Safariの共有から「ホーム画面に追加」</p></div></section>`,
     "title",
   );
 }
 function map() {
   const next = Math.min(3, Math.max(0, ...data.cleared) + 1);
   mount(
-    `<section class="screen map"><header class="topbar">${button("‹", "title", "small")}<h2>こもれびの森</h2><span class="coin">🪙 ${data.coins}</span></header><div class="map-path">${stages
-      .map((s, i) => {
+    `<section class="screen map"><header class="topbar">${button("‹", "title", "small")}<h2>こもれびの森</h2><span class="coin">◆ ${data.coins}</span></header><div class="map-path">${stages
+      .map((s) => {
         const cleared = data.cleared.includes(s.id),
           locked = s.id > next;
-        return `<button class="stage-node ${cleared ? "done" : s.id === next ? "next" : ""}" style="--x:${[32, 66, 43][i]}%;--y:${[78, 48, 18][i]}%" data-stage="${s.id}" ${locked ? "disabled" : ""} aria-label="ステージ${s.id}${locked ? " 未解放" : cleared ? " クリア済み" : ""}">${locked ? "🔒" : s.id}<small>${cleared ? "★ CLEAR" : locked ? "おやすみ" : "あそぶ"}</small></button>`;
+        return `<button class="stage-node ${cleared ? "done" : s.id === next ? "next" : ""}" data-stage="${s.id}" ${locked ? "disabled" : ""} aria-label="ステージ${s.id}${locked ? " 未解放" : cleared ? " クリア済み" : ""}"><span class="stage-number">${s.id}</span><small>${cleared ? "★" : locked ? "未解放" : "挑戦"}</small></button>`;
       })
       .join(
         "",
@@ -94,7 +133,8 @@ function map() {
     (b) =>
       (b.onclick = () => {
         audio.unlock();
-        start(Number(b.dataset.stage));
+        const id = Number(b.dataset.stage);
+        start(id, data.current?.id === id);
       }),
   );
 }
@@ -137,7 +177,7 @@ function start(id, resume = false) {
     }
   }
   mount(
-    `<section class="screen puzzle"><header class="topbar">${button("‹ マップ", "leave", "small")}<span class="coin">🪙 ${data.coins}</span>${button("あそび方", "help", "small")}</header><div class="panel hud"><div class="level">STAGE ${id}<br><strong>${game.stage.name}</strong></div><div class="moves"><strong id="moves"></strong><span>のこり手数</span></div></div><div class="panel goals" id="goals"></div><div class="board-wrap"><canvas aria-label="マッチ3盤面。隣接する果実をスワイプして交換" role="img"></canvas></div><p class="hint-text">${game.stage.tip}</p><footer class="tools">${button("💡 ヒント", "hint")}${button("🔨 ハンマー 20", "hammer")}${button("↻ やりなおす", "retry")}</footer></section>`,
+    `<section class="screen puzzle"><header class="topbar">${button("‹ マップ", "leave", "small")}<span class="coin">◆ ${data.coins}</span>${button("あそび方", "help", "small")}</header><div class="panel hud"><div class="level">STAGE ${id}<br><strong>${game.stage.name}</strong></div><div class="moves"><strong id="moves"></strong><span>のこり手数</span></div></div><div class="panel goals" id="goals"></div><div class="board-wrap"><canvas aria-label="マッチ3盤面。隣接する果実をスワイプして交換" role="img"></canvas></div><p class="hint-text">${game.stage.tip}</p><footer class="tools">${button("ヒント", "hint")}${button("ハンマー 20", "hammer")}${button("↻ やりなおす", "retry")}</footer></section>`,
     "puzzle",
   );
   renderer = new Renderer(app.querySelector("canvas"), game, images);
@@ -312,7 +352,7 @@ async function useHammer(at) {
     await game.act(at, null, (e) => renderer.event(e), true);
     updateHUD();
     checkpoint();
-    document.querySelector(".coin").textContent = `🪙 ${data.coins}`;
+    document.querySelector(".coin").textContent = `◆ ${data.coins}`;
     if (game.status() !== "playing") await finish();
   } finally {
     busy = false;
@@ -322,20 +362,6 @@ const actions = {
   title,
   map,
   collection,
-  new: () => {
-    if (data.cleared.length || data.current)
-      modal(
-        `<h2>最初から遊ぶ？</h2><p>クリア状況・コイン・なかまがリセットされます。</p>${button("最初から", "reset")}${button("もどる", "close", "mint")}`,
-      );
-    else map();
-  },
-  reset: () => {
-    const settings = data.settings;
-    Object.assign(data, fresh(), { settings });
-    persist();
-    map();
-  },
-  continue: () => (data.current ? start(data.current.id, true) : map()),
   bgm: () => {
     data.settings.bgm = !data.settings.bgm;
     persist();
@@ -403,9 +429,10 @@ async function boot() {
     if (import.meta.env.PROD && "serviceWorker" in navigator) {
       try {
         const registration = await navigator.serviceWorker.register("./sw.js");
-        navigator.serviceWorker.ready.then(() =>
-          toast("オフラインの準備ができました。森で遊ぼう！"),
-        );
+        navigator.serviceWorker.ready.then(() => {
+          const tip = app.querySelector(".install-tip");
+          if (tip) tip.textContent = "オフライン準備OK・Safariの共有から追加";
+        });
         registration.addEventListener("updatefound", () => {
           const worker = registration.installing;
           worker?.addEventListener("statechange", () => {

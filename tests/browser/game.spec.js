@@ -15,7 +15,12 @@ async function install(page, data) {
     [storageKey, data],
   );
   await page.reload();
-  await page.getByRole("button", { name: "つづきから", exact: true }).click();
+  await page.getByRole("button", { name: "はじめる", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: new RegExp(`^ステージ${data.current.id}(?: |$)`),
+    })
+    .click();
   await expect(page.locator("canvas")).toBeVisible();
 }
 async function tapCell(page, at) {
@@ -49,7 +54,7 @@ test("title/map/collection and settings persist without page scroll at 320–430
   await page.getByRole("button", { name: "♪ BGM ON" }).click();
   await page.reload();
   await expect(page.getByRole("button", { name: "♪ BGM OFF" })).toBeVisible();
-  await page.getByRole("button", { name: "森のマップへ" }).click();
+  await page.getByRole("button", { name: "はじめる", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "ステージ2 未解放" }),
   ).toBeDisabled();
@@ -119,7 +124,8 @@ test("valid touch swap animates, consumes a move, and resumes saved board", asyn
     storageKey,
   );
   await page.reload();
-  await page.getByRole("button", { name: "つづきから" }).click();
+  await page.getByRole("button", { name: "はじめる", exact: true }).click();
+  await page.getByRole("button", { name: "ステージ1", exact: true }).click();
   await expect(page.locator("#moves")).toHaveText("23");
   expect(
     await page.evaluate(
@@ -221,7 +227,7 @@ test("PWA cached under repository subpath reloads and plays fully offline", asyn
   await page.getByRole("button", { name: "はじめる" }).click();
   await page.getByRole("button", { name: "ステージ1", exact: true }).click();
   await expect(page.locator("canvas")).toBeVisible();
-  await page.getByRole("button", { name: "💡 ヒント" }).click();
+  await page.getByRole("button", { name: "ヒント" }).click();
   const d = fresh(),
     g = new Game(stages[0]);
   g.board[3][3].type = "rocketH";

@@ -1,12 +1,19 @@
 const ease = (t) => 1 - Math.pow(1 - t, 3);
-// arcTo keeps rounded cells compatible with Safari versions without roundRect.
-function rounded(ctx, x, y, w, h, r) {
-  r = Math.min(r, w / 2, h / 2);
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
+// Small stepped corners keep the board consistent with the pixel UI.
+function pixelCell(ctx, x, y, w, h) {
+  const k = Math.min(3, w / 6, h / 6);
+  ctx.moveTo(x + k, y);
+  ctx.lineTo(x + w - k, y);
+  ctx.lineTo(x + w - k, y + k);
+  ctx.lineTo(x + w, y + k);
+  ctx.lineTo(x + w, y + h - k);
+  ctx.lineTo(x + w - k, y + h - k);
+  ctx.lineTo(x + w - k, y + h);
+  ctx.lineTo(x + k, y + h);
+  ctx.lineTo(x + k, y + h - k);
+  ctx.lineTo(x, y + h - k);
+  ctx.lineTo(x, y + k);
+  ctx.lineTo(x + k, y + k);
   ctx.closePath();
 }
 export class Renderer {
@@ -33,6 +40,7 @@ export class Renderer {
     this.canvas.width = Math.round(this.width * dpr);
     this.canvas.height = Math.round(this.height * dpr);
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.ctx.imageSmoothingEnabled = false;
     this.draw();
   }
   image(p) {
@@ -49,7 +57,7 @@ export class Renderer {
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.translate(x, y);
-    ctx.rotate(rotation);
+    ctx.rotate(rotation + (p.type === "rocketV" ? Math.PI / 2 : 0));
     ctx.drawImage(img, -w / 2, -h / 2, w, h);
     ctx.restore();
   }
@@ -71,7 +79,7 @@ export class Renderer {
         if (!this.game.inside(r, c)) continue;
         ctx.fillStyle = (r + c) % 2 ? "#f6dfbb" : "#ffedce";
         ctx.beginPath();
-        rounded(ctx, c * s + 1, r * s + 1, s - 2, s - 2, 6);
+        pixelCell(ctx, c * s + 1, r * s + 1, s - 2, s - 2);
         ctx.fill();
         const o = this.game.blocked.get(`${r},${c}`);
         if (o) {
@@ -107,7 +115,7 @@ export class Renderer {
       ctx.lineWidth = 3;
       for (const at of this.hint ?? [this.selected]) {
         ctx.beginPath();
-        rounded(ctx, at[1] * s + 2, at[0] * s + 2, s - 4, s - 4, 8);
+        pixelCell(ctx, at[1] * s + 2, at[0] * s + 2, s - 4, s - 4);
         ctx.stroke();
       }
     }
