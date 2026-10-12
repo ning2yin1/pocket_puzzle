@@ -1,0 +1,131 @@
+{
+  "game": "ぽけっとパズルの森",
+  "assets": [
+    {
+      "path": "assets/pieces/strawberry.png",
+      "width": 385,
+      "height": 418,
+      "transparent": true
+    },
+    {
+      "path": "assets/pieces/green_apple.png",
+      "width": 423,
+      "height": 413,
+      "transparent": true
+    },
+    {
+      "path": "assets/pieces/banana.png",
+      "width": 409,
+      "height": 409,
+      "transparent": true
+    },
+    {
+      "path": "assets/pieces/grape.png",
+      "width": 435,
+      "height": 439,
+      "transparent": true
+    },
+    {
+      "path": "assets/pieces/peach.png",
+      "width": 400,
+      "height": 423,
+      "transparent": true
+    },
+    {
+      "path": "assets/characters/mochi.png",
+      "width": 361,
+      "height": 320,
+      "transparent": true
+    },
+    {
+      "path": "assets/characters/piyo.png",
+      "width": 331,
+      "height": 332,
+      "transparent": true
+    },
+    {
+      "path": "assets/characters/midorin.png",
+      "width": 341,
+      "height": 320,
+      "transparent": true
+    },
+    {
+      "path": "assets/characters/pinku.png",
+      "width": 343,
+      "height": 356,
+      "transparent": true
+    },
+    {
+      "path": "assets/characters/kuromaru.png",
+      "width": 362,
+      "height": 313,
+      "transparent": true
+    },
+    {
+      "path": "assets/characters/fuwari.png",
+      "width": 354,
+      "height": 323,
+      "transparent": true
+    },
+    {
+      "path": "assets/backgrounds/title_forest.png",
+      "width": 864,
+      "height": 1536,
+      "transparent": false
+    },
+    {
+      "path": "assets/backgrounds/map_forest.png",
+      "width": 864,
+      "height": 1536,
+      "transparent": false
+    },
+    {
+      "path": "assets/backgrounds/puzzle_forest.png",
+      "width": 864,
+      "height": 1536,
+      "transparent": false
+    },
+    {
+      "path": "assets/powerups/rocket_horizontal.png",
+      "width": 634,
+      "height": 333,
+      "transparent": true
+    },
+    {
+      "path": "assets/powerups/rocket_vertical.png",
+      "width": 333,
+      "height": 634,
+      "transparent": true
+    },
+    {
+      "path": "assets/powerups/tnt.png",
+      "width": 437,
+      "height": 474,
+      "transparent": true
+    },
+    {
+      "path": "assets/powerups/propeller.png",
+      "width": 511,
+      "height": 401,
+      "transparent": true
+    },
+    {
+      "path": "assets/powerups/light_ball.png",
+      "width": 496,
+      "height": 405,
+      "transparent": true
+    },
+    {
+      "path": "assets/obstacles/wooden_crate.png",
+      "width": 278,
+      "height": 273,
+      "transparent": true
+    },
+    {
+      "path": "assets/obstacles/rock.png",
+      "width": 280,
+      "height": 275,
+      "transparent": true
+    }
+  ]
+}
